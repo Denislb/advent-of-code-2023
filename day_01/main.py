@@ -8,7 +8,7 @@ def calibration(filename, regex):
     with open(filename) as f:
         for line in f:
             result = re.findall(f"{regex}", line)
-            total += 10 * {result[0]} + {result[-1]}
+            total += 10 * matrice[result[0]] + matrice[result[-1]]
     return total
 
 def part_one(filename):

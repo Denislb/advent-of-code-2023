@@ -1,4 +1,6 @@
 import re
+from collections import defaultdict
+
 
 def part_one(filename):
     points = 0
@@ -20,21 +22,18 @@ def part_one(filename):
 
 
 def part_two(input_path):
-    with open(input_path) as f:
-        num_games = len(f.readlines())
-    
-    cards = {x: 1 for x in range(1, num_games + 1)}
+    cards = defaultdict(int)
     with open(input_path) as f:
         for idx, line in enumerate(f):
+            cards[idx] += 1
             splitted = line.split('|')
             winnings = re.findall(r"(\d+) ", splitted[0])
             numbers = re.findall(r"(\d+)", splitted[1])
-            curr = idx + 2
+            curr = idx + 1
             for winning_num in winnings:
                 if winning_num in numbers:
-                    cards[curr] += cards[idx + 1]
+                    cards[curr] += cards[idx]
                     curr += 1
-                
     return sum(cards.values())
 
 

@@ -26,7 +26,6 @@ def part_two(input_path):
     cards = {x: 1 for x in range(1, num_games + 1)}
     with open(input_path) as f:
         for idx, line in enumerate(f):
-            wins = 0
             splitted = line.split('|')
             winnings = re.findall(r"(\d+) ", splitted[0])
             numbers = re.findall(r"(\d+)", splitted[1])

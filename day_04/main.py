@@ -30,14 +30,12 @@ def part_two(input_path):
             splitted = line.split('|')
             winnings = re.findall(r"(\d+) ", splitted[0])
             numbers = re.findall(r"(\d+)", splitted[1])
+            curr = idx + 2
             for winning_num in winnings:
                 if winning_num in numbers:
-                    wins += 1
-            curr = idx + 2
-            while wins > 0:
-                cards[curr] += cards[idx + 1]
-                wins -= 1
-                curr += 1
+                    cards[curr] += cards[idx + 1]
+                    curr += 1
+                
     return sum(cards.values())
 
 

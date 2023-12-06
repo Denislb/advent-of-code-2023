@@ -28,7 +28,7 @@ def part_two_with_maths(filename):
         max_dist = int(''.join(re.findall(r'(\d+)', f.readline())))
     b1 = (max_time - math.sqrt(math.pow(max_time, 2) - 4 * max_dist)) / 2
     b2 = (max_time + math.sqrt(math.pow(max_time, 2) - 4 * max_dist)) / 2
-    return math.trunc(abs(b1 - b2))
+    return math.trunc(b2 - b1)
 
 
 def part_two(filename):

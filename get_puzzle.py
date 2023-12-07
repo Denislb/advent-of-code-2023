@@ -1,6 +1,6 @@
 import requests
 
-DAY = 6
+DAY = 7
 YEAR = 2023
 with open("cookie.txt", "r") as f:
   COOKIE = f.read().splitlines()[0]

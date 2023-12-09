@@ -33,7 +33,6 @@ def resolve(filename):
 
 if __name__ == "__main__":
     input_path = "./day_09/input.txt"
-    #print(part_one(input_path))
 
     results = resolve(input_path)
     print("---Part One---")

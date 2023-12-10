@@ -6,3 +6,4 @@ cookie.txt
 super-linter.log
 exemple.txt
 input.txt
+*.old

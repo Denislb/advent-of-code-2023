@@ -14,7 +14,7 @@ def clean_dots(str):
     return new_str
 
 def find_matches(line, infos, idx = 0, idx_infos = 0, count = 0, last_is_dot = False, hash_map = {}):
-    if clean_dots(clean_dots("".join(line))) in hash_map:
+    if clean_dots("".join(line)) in hash_map:
         return hash_map[clean_dots("".join(line))]
     if idx < len(line) and line[idx::].count('.') == len(line[idx::]):
         idx = len(line)

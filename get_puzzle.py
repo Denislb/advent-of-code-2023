@@ -1,6 +1,6 @@
 import requests
 
-DAY = 18
+DAY = 19
 YEAR = 2023
 with open("cookie.txt", "r") as f:
   COOKIE = f.read().splitlines()[0]
@@ -14,3 +14,4 @@ puzzle = requests.get(INPUT_URL, headers = headers).content.decode('ASCII')
 
 with open(f"day_{DAY:02}/input.txt", "w") as f:
   f.write(puzzle)
+

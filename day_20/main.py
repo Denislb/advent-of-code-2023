@@ -10,9 +10,6 @@ class Module:
         self.inputs = {}
         self.name = name
 
-    # def __str__(self):
-    #     return self.name
-
     def setOutputs(self, outputs):
         self.outputs = outputs
 
@@ -156,9 +153,7 @@ def part_two(broadcaster, output_module):
     ret = []
     for m in modules_at_false:
         ret.append(abs(list(modules_at_false[m])[0] - list(modules_at_false[m])[1]))
-    print(ret) # 4019, 3923, 3821, 3919
-    return 0
-    #return math.lcm(*ret)
+    return math.lcm(*ret)
 
 
 if __name__ == "__main__":

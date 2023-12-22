@@ -7,3 +7,4 @@ super-linter.log
 exemple.txt
 input.txt
 *.old
+test.py

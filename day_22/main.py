@@ -1,198 +1,123 @@
+class Brick:
+    def __init__(self):
+        self.blocks = set()
+        self.supported_by = set()
+        self.support = set()
+
+    def generate_blocks(self, start, end):
+        for z in range(min(start[2], end[2]), max(start[2], end[2]) + 1):
+            for y in range(min(start[1], end[1]), max(start[1], end[1]) + 1):
+                for x in range(min(start[0], end[0]), max(start[0], end[0]) + 1):
+                    self.blocks.add((x, y, z))
+
+    def calc_supports(self, bricks, idx):
+        found = False
+        while idx > 0:
+            if idx in bricks:
+                for brick in bricks[idx]:
+                    for block in self.blocks:
+                        if (block[0], block[1], idx) in brick.blocks:
+                            found = True
+                            self.supported_by.add(brick)
+                            brick.support.add(self)
+            idx -= 1
+            if found:
+                break
+
+    def fall(self, bricks):
+        current_fall = 0
+        while True:
+            can_fall = True
+            for block in self.blocks:
+                x, y, z = block
+                if z - current_fall - 1 == 0:
+                    can_fall = False
+                    break
+                if z - current_fall - 1 in bricks:
+                    for brick in bricks[z - current_fall - 1]:
+                        if (x, y, z - current_fall - 1) in brick.blocks:
+                            can_fall = False
+                            break
+                if not can_fall:
+                    break
+            if not can_fall:
+                new_blocks = set()
+                for block in self.blocks:
+                    new_blocks.add((block[0], block[1], block[2] - current_fall))
+                self.blocks = new_blocks
+                best_block = None
+                for b in self.blocks:
+                    if not best_block or best_block[2] < b[2]:
+                        best_block = b
+                if best_block[2] not in bricks:
+                    bricks[best_block[2]] = [ self ]
+                else:
+                    bricks[best_block[2]].append(self)
+                break
+            current_fall += 1
+
+    def is_multi_support(self):
+        for support in self.support:
+            if len(support.supported_by) < 2:
+                return False
+        return True
+
+    def collapse(self, removed, count):
+        removed.add(self)
+        for support in self.support:
+            c = 0
+            for supported_by in support.supported_by:
+                if supported_by not in removed:
+                    c += 1
+            if c == 0:
+                count = support.collapse(removed, count + 1)
+        return count
+
 def parse_input(filename):
-    starting_map = []
-    max_x, max_y, max_z = 0, 0, 0
-    blocks = {}
-    idx = 0
+    bricks = {}
     with open(filename) as f:
         for line in f:
-            curr_block = line.strip().split('~')
-            start_block = [int(i) for i in curr_block[0].split(',')]
-            end_block = [int(i) for i in curr_block[1].split(',')]
-            max_x = max(max_x, start_block[0], end_block[0])
-            max_y = max(max_y, start_block[1], end_block[1])
-            max_z = max(max_z, start_block[2], end_block[2])
-            blocks[idx] = (start_block, end_block)
-            idx += 1
-    starting_map = generate_map(blocks, max_x, max_y, max_z)
-    return starting_map, blocks
-
-def print_map_z_y(map):
-    z = len(map) - 1
-    while z > 0:
-        for r in map[z]:
-            found = False
-            for c in r:
-                if c != '.':
-                    found = True
-                    print(c, end="")
-                    break
-            if found == False:
-                print('.', end="")
-        print()
-        z -= 1
-
-def print_map_z_x(map):
-    z = len(map) - 1
-    while z > 0:
-        x = 0
-        while x < len(map[z][0]):
-            y = 0
-            found = False
-            while y < len(map[z]):
-                if map[z][y][x] != '.':
-                    found = True
-                    print(map[z][y][x], end="")
-                    break
-                y += 1
-            if found == False:
-                print('.', end="")
-            x += 1
-        print("")
-        z -= 1
-
-def print_raw(map):
-    z = len(map) - 1
-    while z > 0:
-        print(map[z])
-        z -= 1
-
-def generate_map(blocks, max_x, max_y, max_z):
-    starting_map = []
-    for z in range(max_z + 1):
-        row_y = []
-        for y in range(max_y + 1):
-            row_x = []
-            for x in range(max_x + 1):
-                row_x.append('.')
-            row_y.append(row_x)
-        starting_map.append(row_y)
-
-    for idx, block in blocks.items():
-        for z in range(block[0][2], block[1][2] + 1):
-            for y in range(block[0][1], block[1][1] + 1):
-                for x in range(block[0][0], block[1][0] + 1):
-                    starting_map[z][y][x] = idx
-    return starting_map
-
-def fall(starting_map, blocks):
-    fall = True
-    while fall:
-        new_blocks = {}
-        fall = False
-        for idx, block in blocks.items():
-            z = min(block[0][2], block[1][2])
-            found = False
-            if z == 1:
-                found = True
-            for y in range(block[0][1], block[1][1] + 1):
-                for x in range(block[0][0], block[1][0] + 1):
-                    if starting_map[z - 1][y][x] != '.':
-                        found = True
-                        break
-                if found:
-                    break
-            if not found:
-                fall = True
-                new_blocks[idx] = ([block[0][0], block[0][1], block[0][2] - 1], [block[1][0], block[1][1], block[1][2] - 1])
+            curr_brick = line.strip().split('~')
+            start_brick = [int(i) for i in curr_brick[0].split(',')]
+            end_brick = [int(i) for i in curr_brick[1].split(',')]
+            new_brick = Brick()
+            new_brick.generate_blocks(start_brick, end_brick)
+            if end_brick[2] not in bricks:
+                bricks[end_brick[2]] = [new_brick]
             else:
-                new_blocks[idx] = (block)
-        blocks = new_blocks
-        starting_map = generate_map(blocks, len(starting_map[0][0]) - 1, len(starting_map[0]) - 1, len(starting_map) - 1)
-    return starting_map, blocks
+                bricks[end_brick[2]].append(new_brick)
 
-def check_multiple_supports(starting_map, blocks, b, removed_support = []):
-    block = blocks[b]
-    z = min(block[0][2], block[1][2])
-    supported_by = set()
-    for y in range(block[0][1], block[1][1] + 1):
-        for x in range(block[0][0], block[1][0] + 1):
-            if starting_map[z - 1][y][x] != '.' and starting_map[z - 1][y][x] not in removed_support:
-                supported_by.add(starting_map[z - 1][y][x])
-    return supported_by
+    new_bricks = {}
+    for b in sorted(bricks):
+        for brick in bricks[b]:
+            brick.fall(new_bricks)
+    for b in sorted(new_bricks, reverse=True):
+        if b == 1:
+            break
+        for brick in new_bricks[b]:
+            brick.calc_supports(new_bricks, b - 1)
+    return new_bricks   
 
-def part_one(starting_map, blocks):
+
+def part_one(bricks):
     count = 0
-    for _, block in blocks.items():
-        support = set()
-        z = max(block[0][2], block[1][2])
-        for y in range(block[0][1], block[1][1] + 1):
-            for x in range(block[0][0], block[1][0] + 1):
-                if z + 1 < len(starting_map):
-                    if starting_map[z + 1][y][x] != '.':
-                        support.add(starting_map[z + 1][y][x])
-        f = True
-        for s in support:
-            if len(check_multiple_supports(starting_map, blocks, s)) <= 1:
-                f = False
-                break
-        if f:
-            count += 1
+    for _, brick in bricks.items():
+        for b in brick:
+            if b.is_multi_support():
+                count += 1
     return count
 
-
-def remove_blocks(blocks, to_remove):
-    to_check = {}
-    ret = set()
-    if len(to_remove) == 0:
-        return
-    for tr in to_remove:
-        block = blocks[tr]
-        ret.add(tr)
-        support = set()
-        z = max(block[0][2], block[1][2])
-        for y in range(block[0][1], block[1][1] + 1):
-            for x in range(block[0][0], block[1][0] + 1):
-                if z + 1 < len(starting_map):
-                    if starting_map[z + 1][y][x] != '.':
-                        support.add(starting_map[z + 1][y][x])
-        # print(f"[{tr}] ==> {support} wth {to_remove}")
-        for s in support:
-            if len(check_multiple_supports(starting_map, blocks, s, to_remove)) <= 0:
-                if tr not in to_check:
-                    to_check[tr] = [s]
-                else:
-                    to_check[tr].append(s)
-        if tr in to_check:
-            ret = ret.union(remove_blocks(blocks, to_check[tr]))
-    return ret
-
-def part_two(starting_map, blocks): # 91530 to high - 1265 to low
-    to_check = {}
-    for idx, block in blocks.items():
-        support = set()
-        z = max(block[0][2], block[1][2])
-        for y in range(block[0][1], block[1][1] + 1):
-            for x in range(block[0][0], block[1][0] + 1):
-                if z + 1 < len(starting_map):
-                    if starting_map[z + 1][y][x] != '.':
-                        support.add(starting_map[z + 1][y][x])
-        for s in support:
-            if len(check_multiple_supports(starting_map, blocks, s)) <= 1:
-                if idx not in to_check:
-                    to_check[idx] = [s]
-                else:
-                    to_check[idx].append(s)
-    print_raw(starting_map)
-    # print_map_z_y(starting_map)
-    # print("----")
-    # print(to_check)
-    ret = 0
-    idx = 0
-    print(len(to_check))
-    for b in to_check:
-        r = remove_blocks(blocks, to_check[b])
-        print(r)
-        ret += len(r)
-        idx += 1
-    #print(ret)
-    return ret
+def part_two(bricks):
+    count = 0
+    for _, brick in bricks.items():
+        for b in brick:
+            count += b.collapse(set(), 0)
+    return count
 
 if __name__ == "__main__":
-    input_path = "./day_22/exemple.txt"
-    starting_map, blocks = parse_input(input_path)
-    starting_map, blocks = fall(starting_map, blocks)
+    input_path = "./day_22/input.txt"
+    bricks = parse_input(input_path)
     print("---Part One---")
-    print(part_one(starting_map, blocks))
-
+    print(part_one(bricks))
     print("---Part Two---")
-    print(part_two(starting_map, blocks))
+    print(part_two(bricks))
